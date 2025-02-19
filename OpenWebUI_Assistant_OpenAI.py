@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 class Pipe:
     class Valves(BaseModel):
+        OPENAI_API_BASE_URL: str = "https://api.openai.com/v1"
         OPENAI_API_KEY: str = Field(default="")
 
     def __init__(self):
@@ -15,13 +16,22 @@ class Pipe:
         self.name = "openai/"
         self.valves = self.Valves(
             **{
-                "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY", "api_key_number") # API KEY Open AI
+                "OPENAI_API_KEY": os.getenv(
+                    "OPENAI_API_KEY", "api_key_number"
+                ),  # API KEY Open AI
+                "OPENAI_API_BASE_URL": os.getenv(
+                    "OPENAI_API_BASE_URL", "https://api.openai.com/v1"
+                ),
             }
         )
         if not self.valves.OPENAI_API_KEY:
-            raise ValueError("API Key is required. Set OPENAI_API_KEY as an environment variable.")
+            raise ValueError(
+                "API Key is required. Set OPENAI_API_KEY as an environment variable."
+            )
         openai.api_key = self.valves.OPENAI_API_KEY
+        openai.base_url = self.valves.OPENAI_API_BASE_URL
         self.assistant_id = "asst_custom_id"  # ID of the custom assistant
+        
 
     def pipes(self) -> List[dict]:
         return [{"id": self.assistant_id, "name": "Custom Assistant"}]
