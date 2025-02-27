@@ -21,10 +21,39 @@ class Pipe:
         if not self.valves.OPENAI_API_KEY:
             raise ValueError("API Key is required. Set OPENAI_API_KEY as an environment variable.")
         openai.api_key = self.valves.OPENAI_API_KEY
-        self.assistant_id = "asst_custom_id"  # ID of the custom assistant
+
 
     def pipes(self) -> List[dict]:
-        return [{"id": self.assistant_id, "name": "Custom Assistant"}]
+        if self.valves.OPENAI_API_KEY:
+            try:
+                print("Fetching assistants from API...")
+                assistant_data = openai.beta.assistants.list()
+                assistants = [
+                    {
+                        "id": assistant.id,
+                        "name": assistant.name or "",
+                        "description": assistant.description or "",
+                    }
+                    for assistant in assistant_data.data
+                ]
+
+                print(f"\nSuccessfully found assistants: {assistants}")
+                return assistants
+            except Exception as e:
+                return [
+                    {
+                        "id": "error",
+                        "name": "Error fetching models. Please check your API Key.",
+                    },
+                ]
+        else:
+            return [
+                {
+                    "id": "error",
+                    "name": "API Key not provided.",
+                },
+            ]
+
 
     def process_messages(self, messages: List[dict]) -> List[dict]:
         """Process a list of messages and format them for OpenAI API."""
